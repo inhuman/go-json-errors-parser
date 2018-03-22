@@ -14,6 +14,11 @@ func (pe *ParsedErrors) IsErrors() bool {
 	return len(pe.ParsedErrors) > 0
 }
 
+func (pe *ParsedErrors) GetCount() int {
+	return len(pe.ParsedErrors)
+}
+
+
 func ParseErrors(json string) *ParsedErrors {
 
 	errs := ParsedErrors{}

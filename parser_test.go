@@ -7,18 +7,21 @@ import (
 )
 
 func TestParseErrorsExample1(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example1.json")
 	assert.NoError(t, e)
 
 	errs := ParseErrors(string(file))
 
+	assert.Equal(t, 1, errs.GetCount())
 	assert.Equal(t, "data", errs.ParsedErrors[0].Parent)
 	assert.Equal(t, "Package spec not specified", errs.ParsedErrors[0].Children["PACKAGE_SPEC"][0])
 }
 
 
 func TestParseErrorsExample2(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example2.json")
 	assert.NoError(t, e)
@@ -30,6 +33,7 @@ func TestParseErrorsExample2(t *testing.T) {
 }
 
 func TestParseErrorsExample3(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example3.json")
 	assert.NoError(t, e)
@@ -43,6 +47,7 @@ func TestParseErrorsExample3(t *testing.T) {
 
 
 func TestParseErrorsExample4(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example4.json")
 	assert.NoError(t, e)
@@ -54,6 +59,7 @@ func TestParseErrorsExample4(t *testing.T) {
 }
 
 func TestParseErrorsExample5(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example5.json")
 	assert.NoError(t, e)
@@ -67,6 +73,7 @@ func TestParseErrorsExample5(t *testing.T) {
 }
 
 func TestParseErrorsExample6(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example6.json")
 	assert.NoError(t, e)
@@ -78,6 +85,7 @@ func TestParseErrorsExample6(t *testing.T) {
 }
 
 func TestParseErrorsExample7(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example7.json")
 	assert.NoError(t, e)
@@ -89,6 +97,7 @@ func TestParseErrorsExample7(t *testing.T) {
 }
 
 func TestParseErrorsExample8(t *testing.T) {
+	t.Parallel()
 
 	file, e := ioutil.ReadFile("tests/example8.json")
 	assert.NoError(t, e)

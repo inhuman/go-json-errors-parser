@@ -1,0 +1,13 @@
+{
+  "message": "Validations failed for pipeline 'FromTemplate2'. Error(s): [Validation failed.]. Please correct and resubmit.",
+  "data": {
+    "Errors": {
+      "materials": [
+        "A pipeline must have at least one material"
+      ],
+      "label_template": [
+        "Invalid label '123'. Label should be composed of alphanumeric text, it can contain the build number as ${COUNT}, can contain a material revision as ${<material-name>} of ${<material-name>[:<number>]}, or use params as #{<param-name>}."
+      ]
+    }
+  }
+}

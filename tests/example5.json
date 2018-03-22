@@ -1,0 +1,76 @@
+{
+  "message": "Validations failed for pipeline 'FromTemplate3'. Error(s): [Validation failed.]. Please correct and resubmit.",
+  "data": {
+    "_links": {
+      "self": {
+        "href": "http://localhost:8153/go/api/admin/pipelines/FromTemplate3"
+      },
+      "doc": {
+        "href": "https://api.gocd.org/#pipeline-config"
+      },
+      "find": {
+        "href": "http://localhost:8153/go/api/admin/pipelines/:pipeline_name"
+      }
+    },
+    "label_template": "git-${COUNT}",
+    "enable_pipeline_locking": false,
+    "name": "FromTemplate3",
+    "template": "test_template",
+    "origin": null,
+    "parameters": [
+
+    ],
+    "environment_variables": [
+      {
+        "secure": false,
+        "name": "ADF",
+        "value": "123"
+      }
+    ],
+    "materials": [
+      {
+        "errors": {
+          "destination": [
+            "Invalid Destination Directory. Every material needs a different destination directory and the directories should not be nested.",
+            "The destination directory must be unique across materials."
+          ]
+        },
+        "type": "git",
+        "attributes": {
+          "url": "git@github.com:sample_repo/example.git",
+          "destination": "dest",
+          "filter": null,
+          "invert_filter": false,
+          "name": null,
+          "auto_update": true,
+          "branch": "master",
+          "submodule_folder": null,
+          "shallow_clone": true
+        }
+      },
+      {
+        "errors": {
+          "destination": [
+            "Invalid Destination Directory. Every material needs a different destination directory and the directories should not be nested.",
+            "The destination directory must be unique across materials."
+          ]
+        },
+        "type": "git",
+        "attributes": {
+          "url": "git@github.com:sample_repo2/repo.git",
+          "destination": "dest",
+          "filter": null,
+          "invert_filter": false,
+          "name": null,
+          "auto_update": true,
+          "branch": "master",
+          "submodule_folder": null,
+          "shallow_clone": true
+        }
+      }
+    ],
+    "stages": null,
+    "tracking_tool": null,
+    "timer": null
+  }
+}

@@ -1,0 +1,23 @@
+language: go
+
+go:
+  - "1.10"
+
+install: true
+notifications:
+  email: false
+
+jobs:
+  include:
+    - stage: Test
+      script:
+      - export GOPATH="${TRAVIS_BUILD_DIR}/vendor:${TRAVIS_BUILD_DIR}"
+      - export PATH=$GOPATH:$PATH
+      - export REPO_NAME='go-json-errors-parser'
+      - go get -v -d ./src/...
+      - go get github.com/mattn/goveralls
+      - go get github.com/go-playground/overalls
+      - go get github.com/stretchr/testify/assert
+      - go install github.com/go-playground/overalls
+      - go test -v -covermode=count -coverprofile=overalls.coverprofile
+      - $TRAVIS_BUILD_DIR/vendor/bin/goveralls -coverprofile=overalls.coverprofile -service travis-ci -repotoken $COVERALLS_TOKEN

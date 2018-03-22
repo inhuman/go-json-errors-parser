@@ -1,0 +1,14 @@
+{
+  "data": {
+    "Errors": [
+      {
+        "FieldName": "some error",
+        "FieldName2": "some error",
+        "subErrorArr": [
+          "info1",
+          "info2"
+        ]
+      }
+    ]
+  }
+}

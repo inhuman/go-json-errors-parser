@@ -15,6 +15,10 @@ func TestUnmarshalString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Unauthorized", unmarshaledError.Error)
 
+	parsedErrors := ParsedErrors{}
+	unmarshaledError.transferTo(&parsedErrors, "")
+	assert.Equal(t, "Unauthorized", parsedErrors.ParsedErrors[0].Messages[0])
+
 	var unmarshaledError2 stringError
 	unmarshaledError2.RawMessage = json.RawMessage(`{"error": "Unauthorized"}`)
 
@@ -31,6 +35,9 @@ func TestUnmarshalSliceString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Unauthorized", unmarshaledError.Error[0])
 	assert.Equal(t, "Auth required", unmarshaledError.Error[1])
+
+	parsedErrors := ParsedErrors{}
+	unmarshaledError.transferTo(&parsedErrors, "")
 
 	var unmarshaledError2 sliceStringError
 	unmarshaledError2.RawMessage = json.RawMessage(`"Errors": ["Unauthorized","Auth required"]`)
@@ -78,3 +85,12 @@ func TestBoolValue(t *testing.T) {
 	err2 := unmarshaledError2.unmarshalJson()
 	assert.Error(t, err2)
 }
+
+//func TestBatchCheck(t *testing.T) {
+//
+//	rawMessage := json.RawMessage(`"Unauthorized"`)
+//	parsedErrors := ParsedErrors{}
+//
+//	batchCheck(&rawMessage, &parsedErrors, "")
+//
+//}

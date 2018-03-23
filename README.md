@@ -1,6 +1,8 @@
 # go-json-errors-parser 
 
 [![Build Status](https://travis-ci.org/inhuman/go-json-errors-parser.svg?branch=master)](https://travis-ci.org/inhuman/go-json-errors-parser)
+
+
 Tiny go lib for parsing error fields in json
 
 The lib may be useful, when you don't know where in received json will be an error field and in which format it will be, 

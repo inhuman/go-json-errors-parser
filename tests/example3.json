@@ -18,21 +18,6 @@
       }
     },
     "label_template": "123",
-    "lock_behavior": "unlockWhenFinished",
-    "name": "FromTemplate2",
-    "template": "test_template",
-    "origin": null,
-    "parameters": [
-
-    ],
-    "environment_variables": [
-
-    ],
-    "materials": [
-
-    ],
-    "stages": null,
-    "tracking_tool": null,
-    "timer": null
+    "origin": null
   }
 }

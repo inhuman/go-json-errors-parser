@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 )
 
 type ParsedError struct {
@@ -36,6 +37,12 @@ func ParseErrors(jsn string) *ParsedErrors {
 	}
 
 	walk(tmpMap, &errs)
+	debugMessage("Final result struct:")
+	debugStruct(errs)
+
+	sort.Slice(errs.ParsedErrors[:], func(i, j int) bool {
+		return len(errs.ParsedErrors[i].Message) < len(errs.ParsedErrors[j].Message)
+	})
 
 	return &errs
 }

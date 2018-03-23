@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"github.com/pkg/errors"
 )
 
 type ParsedError struct {
 	Parent   string
 	Children map[string][]string
-	Message  []string
+	Messages []string
 }
 
 type ParsedErrors struct {
@@ -25,6 +26,36 @@ func (pe *ParsedErrors) GetCount() int {
 	return len(pe.ParsedErrors)
 }
 
+func (pe *ParsedErrors) GetErrors() []error {
+
+	var errs []error
+
+	for _, parsedError := range pe.ParsedErrors {
+
+		// Collect errors from Messages
+		if len(parsedError.Messages) > 0 {
+			for _, msg := range parsedError.Messages {
+				errs = append(errs, errors.New("[] "+msg))
+			}
+		}
+
+		// Collect errors from children
+		for name, children := range parsedError.Children {
+			for _, child := range children {
+				errStr := "[" + parsedError.Parent + "][" + name + "] " + child
+				errs = append(errs, errors.New(errStr))
+			}
+		}
+	}
+
+	sort.Slice(errs[:], func(i, j int) bool {
+		return errs[i].Error() < errs[j].Error()
+	})
+
+	return errs
+}
+
+// Main method
 func ParseErrors(jsn string) *ParsedErrors {
 
 	errs := ParsedErrors{}
@@ -41,12 +72,15 @@ func ParseErrors(jsn string) *ParsedErrors {
 	debugStruct(errs)
 
 	sort.Slice(errs.ParsedErrors[:], func(i, j int) bool {
-		return len(errs.ParsedErrors[i].Message) < len(errs.ParsedErrors[j].Message)
+		return len(errs.ParsedErrors[i].Messages) < len(errs.ParsedErrors[j].Messages)
 	})
 
 	return &errs
 }
 
+// Recursively walks throw entire json, unmarshal and
+// search substring 'error' by regexp (case insensitive match) in keys and values
+// and puts found errors into struct
 func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 
 	debugMessage("intermediate result")
@@ -55,7 +89,6 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 	re := regexp.MustCompile(`(?i)(.+|.?)(error)(.+|.?)`)
 
 	for key, s := range item {
-
 
 		debugMessagef(key, "Key: %s\n")
 		debugMessagef(s, "Value: %s\n")
@@ -230,14 +263,14 @@ func tryUnmarshalToObjectsSliceMap(i *json.RawMessage) (*[]map[string]interface{
 
 func addStringError(str string, ps *ParsedErrors, parent string) {
 	e := ParsedError{}
-	e.Message = append(e.Message, trimQuotes(str))
+	e.Messages = append(e.Messages, trimQuotes(str))
 	e.Parent = parent
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }
 
 func addStringSliceError(strs []string, ps *ParsedErrors, parent string) {
 	e := ParsedError{}
-	e.Message = append(e.Message, strs...)
+	e.Messages = append(e.Messages, strs...)
 	e.Parent = parent
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }

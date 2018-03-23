@@ -106,5 +106,16 @@ if errs.IsErrors() {
     for _, err := range errs.ParsedErrors {
         // handle error messages   
     }
+    
+    //or
+    
+   for _, err := range errors {
+   		fmt.Println(err)
+   }
+   
+   // output 
+   // [] Validations failed for pipeline 'FromTemplate2'. Error(s): [Validation failed.]. Please correct and resubmit.
+   // [data][label_template] Invalid label '123'. Label should be composed of alphanumeric text, it can contain the build number as ${COUNT}, can contain a material revision as ${<material-name>} of ${<material-name>[:<number>]}, or use params as #{<param-name>}.
+   // [data][materials] A pipeline must have at least one material
 }
 ```

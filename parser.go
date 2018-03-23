@@ -57,21 +57,34 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 		fmt.Printf("%s\n", key)
 		fmt.Printf("%s\n", s)
 
+		//TODO: fix find error in s
+		if re.MatchString(fmt.Sprintf("%v", s)) {
+			str, err := tryUnmarshalToString(s)
+			if err == nil {
+				fmt.Println("UNMARSHAL to string error in value")
+				addStringError(*str, ps)
+				continue
+			}
+		}
+
 		if re.MatchString(string(key)) {
 
 			//TODO: try to unmarshal to string slice
 			//TODO: try to unmarshal to map[string]*json.RawMessage
+
 
 			fmt.Println("ERROR PARSED IN KEY: " + string(key))
 
 			// try to unmarshal to string
 			str, err := tryUnmarshalToString(s)
 			if err == nil {
+				fmt.Println("UNMARSHAL to string")
 				addStringError(*str, ps)
 				continue
 			}
 
 			strs, err := tryUnmarshalToStringSlice(s)
+			fmt.Println("UNMARSHAL to string slice")
 			if err == nil {
 				addStringSliceError(*strs, ps)
 				continue
@@ -79,6 +92,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 
 			maps, err := tryUnmarshalToStringSliceMap(s)
 			if err == nil {
+				fmt.Println("UNMARSHAL to string slice map")
 				addStringSliceMapError(*maps, ps)
 				continue
 			}
@@ -88,54 +102,72 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 
 			if err == nil {
 				fmt.Println("UNMARSHAL to obj slice map")
-
 				addObjectSliceMapError(*objMaps, ps)
 				continue
 			}
-
-
 		} else {
 
+			fmt.Println("ELSE fires:")
+			PrettyPrintStruct(s)
+
 			if s == nil {
+				fmt.Println("detect s is nil, skipping..")
 				continue
 			}
 
 			_, err := tryUnmarshalToString(s)
 			if err == nil {
+				fmt.Println("detect s is non error string, skipping..")
 				continue
 			}
 
 			_, err = tryUnmarshalToNum(s)
 			if err == nil {
+				fmt.Println("detect s is num, skipping..")
 				continue
 			}
 
 			_, err = tryUnmarshalToStringSlice(s)
 			if err == nil {
+				fmt.Println("detect s is string slice, skipping..")
 				continue
 			}
 
 			_, err = tryUnmarshalToBool(s)
 			if err == nil {
-				continue
-			}
-
-			_, err = tryUnmarshalToObjectsSliceMap(s)
-			fmt.Println("tryUnmarshalToObjectsSliceMap", err)
-			if err == nil {
+				fmt.Println("detect s is bool, skipping..")
 				continue
 			}
 
 			_, err = tryUnmarshalToStringSliceMap(s)
 			if err == nil {
+				fmt.Println("detect s string slice map, skipping..")
+
+				var tmpMap map[string]*json.RawMessage
+				err = json.Unmarshal(*s, &tmpMap)
+				checkErr(err)
+
+				walk(tmpMap, ps)
+
 				continue
 			}
 
+			_, err = tryUnmarshalToObjectsSliceMap(s)
+			if err == nil {
+				fmt.Println("detect s object slice map, skipping..")
 
-			//TODO: finish the parsor
 
-			fmt.Println("ELSE fires:")
-			PrettyPrintStruct(s)
+				var tmpMap []map[string]*json.RawMessage
+				err = json.Unmarshal(*s, &tmpMap)
+				checkErr(err)
+
+
+				for _, value := range tmpMap {
+					walk(value, ps)
+				}
+				continue
+			}
+
 
 			var tmpMap map[string]*json.RawMessage
 			err = json.Unmarshal(*s, &tmpMap)
@@ -143,30 +175,6 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 
 			walk(tmpMap, ps)
 		}
-
-		//b, err := s.MarshalJSON()
-		//checkErr(err)
-		//
-		//var tmpMap map[string]*json.RawMessage
-		//
-		//if err := json.Unmarshal(b, &tmpMap); err != nil {
-		//
-		//	if re.MatchString(string(b)) {
-		//		fmt.Println("ERROR PARSED IN VALUE: " + string(b))
-		//
-		//		addStringError(string(b), ps)
-		//	}
-		//
-		//	fmt.Println(string(b))
-		//} else {
-		//	var tmpMap map[string]*json.RawMessage
-		//	err := json.Unmarshal(b, &tmpMap)
-		//	if err != nil {
-		//		panic(err)
-		//	}
-		//
-		//	walk(tmpMap, ps)
-		//}
 	}
 }
 
@@ -193,8 +201,6 @@ func tryUnmarshalToNum(i *json.RawMessage) (*int, error) {
 
 	return &tmpMap, nil
 }
-
-
 
 func tryUnmarshalToStringSlice(i *json.RawMessage) (*[]string, error) {
 	var tmpMap []string
@@ -232,9 +238,9 @@ func tryUnmarshalToBool(i *json.RawMessage) (*bool, error) {
 	return &tmpMap, nil
 }
 
-func tryUnmarshalToObjectsSliceMap(i *json.RawMessage) (*[]map[string]string, error) {
+func tryUnmarshalToObjectsSliceMap(i *json.RawMessage) (*[]map[string]interface{}, error) {
 
-	var tmpMap []map[string]string
+	var tmpMap []map[string]interface{}
 
 	err := json.Unmarshal(*i, &tmpMap)
 
@@ -279,7 +285,7 @@ func addStringSliceMapError(strs map[string][]interface{}, ps *ParsedErrors) {
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }
 
-func addObjectSliceMapError(strs []map[string]string, ps *ParsedErrors) {
+func addObjectSliceMapError(strs []map[string]interface{}, ps *ParsedErrors) {
 	e := ParsedError{}
 
 	for _, value := range strs {
@@ -287,7 +293,7 @@ func addObjectSliceMapError(strs []map[string]string, ps *ParsedErrors) {
 		tmp := make(map[string][]string)
 
 		for key, val := range value {
-			tmp[key] = []string{val}
+			tmp[key] = []string{fmt.Sprintf("%v", val)}
 		}
 
 		e.Children = tmp

@@ -85,7 +85,8 @@ func TestParseErrorsExample7(t *testing.T) {
 	errs := ParseErrors(string(file))
 
 	//assert.Equal(t, "data", errs.ParsedErrors[0].Parent)
-	assert.Equal(t, "Unauthorized", errs.ParsedErrors[0].Message[0])
+	assert.Equal(t, "some error", errs.ParsedErrors[0].Children["FieldName"][0])
+	assert.Equal(t, "some error", errs.ParsedErrors[0].Children["FieldName2"][0])
 }
 
 func TestParseErrorsExample8(t *testing.T) {

@@ -58,7 +58,7 @@ The lib parse json and find errors, and put them to usable struct like this:
         ]
       },
       "Message": null,
-      "Parent": ""
+      "Parent": "materials"
     }
   ]
 }
@@ -100,13 +100,11 @@ json := `{
 errs := jerrparser.ParseErrors(json)
 
 if errs.IsErrors() {
-	// handle error messages
 	
-	fmt.Println("errors count", errs.GetCount())
-}
+    fmt.Println("errors count", errs.GetCount())
 
-for _, err := range errs.ParsedErrors {
-	fmt.Println(err.Message)
+    for _, err := range errs.ParsedErrors {
+        // handle error messages   
+    }
 }
-
 ```

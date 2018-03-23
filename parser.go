@@ -36,7 +36,7 @@ func ParseErrors(jsn string) *ParsedErrors {
 		panic(err)
 	}
 
-	walk(tmpMap, &errs)
+	walk(tmpMap, &errs, "")
 	debugMessage("Final result struct:")
 	debugStruct(errs)
 
@@ -47,7 +47,7 @@ func ParseErrors(jsn string) *ParsedErrors {
 	return &errs
 }
 
-func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
+func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 
 	debugMessage("intermediate result")
 	debugStruct(ps)
@@ -55,6 +55,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 	re := regexp.MustCompile(`(?i)(.+|.?)(error)(.+|.?)`)
 
 	for key, s := range item {
+
 
 		debugMessagef(key, "Key: %s\n")
 		debugMessagef(s, "Value: %s\n")
@@ -65,7 +66,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 			str, err := tryUnmarshalToString(s)
 			if err == nil {
 				debugMessage("UNMARSHAL to string error in value")
-				addStringError(*str, ps)
+				addStringError(*str, ps, parent)
 				continue
 			}
 		}
@@ -77,21 +78,21 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 			str, err := tryUnmarshalToString(s)
 			if err == nil {
 				debugMessage("UNMARSHAL to string")
-				addStringError(*str, ps)
+				addStringError(*str, ps, parent)
 				continue
 			}
 
 			strs, err := tryUnmarshalToStringSlice(s)
 			if err == nil {
 				debugMessage("UNMARSHAL to string slice")
-				addStringSliceError(*strs, ps)
+				addStringSliceError(*strs, ps, parent)
 				continue
 			}
 
 			maps, err := tryUnmarshalToStringSliceMap(s)
 			if err == nil {
 				debugMessage("UNMARSHAL to string slice map")
-				addStringSliceMapError(*maps, ps)
+				addStringSliceMapError(*maps, ps, parent)
 				continue
 			}
 
@@ -100,7 +101,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 
 			if err == nil {
 				debugMessage("UNMARSHAL to obj slice map")
-				addObjectSliceMapError(*objMaps, ps)
+				addObjectSliceMapError(*objMaps, ps, parent)
 				continue
 			}
 		} else {
@@ -139,27 +140,26 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 
 			_, err = tryUnmarshalToStringSliceMap(s)
 			if err == nil {
-				debugMessage("detect s string slice map, skipping..")
+				debugMessage("detect s string slice map, waling deeper..")
 
 				var tmpMap map[string]*json.RawMessage
 				err = json.Unmarshal(*s, &tmpMap)
 				checkErr(err)
 
-				walk(tmpMap, ps)
-
+				walk(tmpMap, ps, key)
 				continue
 			}
 
 			_, err = tryUnmarshalToObjectsSliceMap(s)
 			if err == nil {
-				debugMessage("detect s object slice map, skipping..")
+				debugMessage("detect s object slice map, walking deeper..")
 
 				var tmpMap []map[string]*json.RawMessage
 				err = json.Unmarshal(*s, &tmpMap)
 				checkErr(err)
 
 				for _, value := range tmpMap {
-					walk(value, ps)
+					walk(value, ps, key)
 				}
 				continue
 			}
@@ -168,7 +168,8 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 			err = json.Unmarshal(*s, &tmpMap)
 			checkErr(err)
 
-			walk(tmpMap, ps)
+			debugMessage("PARENT set to: " + key)
+			walk(tmpMap, ps, key)
 		}
 	}
 }
@@ -227,19 +228,21 @@ func tryUnmarshalToObjectsSliceMap(i *json.RawMessage) (*[]map[string]interface{
 	return &tmpMap, nil
 }
 
-func addStringError(str string, ps *ParsedErrors) {
+func addStringError(str string, ps *ParsedErrors, parent string) {
 	e := ParsedError{}
 	e.Message = append(e.Message, trimQuotes(str))
+	e.Parent = parent
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }
 
-func addStringSliceError(strs []string, ps *ParsedErrors) {
+func addStringSliceError(strs []string, ps *ParsedErrors, parent string) {
 	e := ParsedError{}
 	e.Message = append(e.Message, strs...)
+	e.Parent = parent
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }
 
-func addStringSliceMapError(strs map[string][]interface{}, ps *ParsedErrors) {
+func addStringSliceMapError(strs map[string][]interface{}, ps *ParsedErrors, parent string) {
 	e := ParsedError{}
 	formattedStrs := make(map[string][]string)
 	for name, str := range strs {
@@ -250,10 +253,11 @@ func addStringSliceMapError(strs map[string][]interface{}, ps *ParsedErrors) {
 		formattedStrs[name] = tmpMap
 	}
 	e.Children = formattedStrs
+	e.Parent = parent
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }
 
-func addObjectSliceMapError(strs []map[string]interface{}, ps *ParsedErrors) {
+func addObjectSliceMapError(strs []map[string]interface{}, ps *ParsedErrors, parent string) {
 	e := ParsedError{}
 	for _, value := range strs {
 		tmp := make(map[string][]string)
@@ -261,6 +265,7 @@ func addObjectSliceMapError(strs []map[string]interface{}, ps *ParsedErrors) {
 			tmp[key] = []string{fmt.Sprintf("%v", val)}
 		}
 		e.Children = tmp
+		e.Parent = parent
 	}
 	ps.ParsedErrors = append(ps.ParsedErrors, e)
 }

@@ -50,7 +50,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 	fmt.Printf("result struct:\n")
 	PrettyPrintStruct(ps)
 
-	re := regexp.MustCompile(`(?i)error`)
+	re := regexp.MustCompile(`(?i)(.+|.?)(error)(.+|.?)`)
 
 	for key, s := range item {
 
@@ -58,7 +58,11 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 		fmt.Printf("%s\n", s)
 
 		//TODO: fix find error in s
-		if re.MatchString(fmt.Sprintf("%v", s)) {
+		str := fmt.Sprintf("%s", s)
+
+		if re.MatchString(str) {
+			fmt.Println("ERROR PARSED IN VALUE: " + str)
+
 			str, err := tryUnmarshalToString(s)
 			if err == nil {
 				fmt.Println("UNMARSHAL to string error in value")
@@ -68,11 +72,6 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors) {
 		}
 
 		if re.MatchString(string(key)) {
-
-			//TODO: try to unmarshal to string slice
-			//TODO: try to unmarshal to map[string]*json.RawMessage
-
-
 			fmt.Println("ERROR PARSED IN KEY: " + string(key))
 
 			// try to unmarshal to string

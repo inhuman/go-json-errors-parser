@@ -3,7 +3,10 @@
     "Errors": [
       {
         "FieldName": "some error",
-        "FieldName2": "some error"
+        "FieldName2": "some error",
+        "Object": {
+          "objectField": "objectValue"
+        }
       }
     ]
   }

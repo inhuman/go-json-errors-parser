@@ -11,6 +11,7 @@ jobs:
   include:
     - stage: Test
       script:
-      - go get -v -d .
+      - go get -v -d
+      - go get github.com/stretchr/testify/assert
       - go test -v -cover
 

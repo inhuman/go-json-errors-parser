@@ -11,6 +11,6 @@ jobs:
   include:
     - stage: Test
       script:
-      - go get -v -d
+      - go get -v -d .
       - go test -v -cover
 

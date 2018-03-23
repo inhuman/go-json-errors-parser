@@ -1,7 +1,8 @@
 {
   "data": {
     "Errors": [
-      "Unauthorized"
+      "Unauthorized",
+      "Auth required"
     ]
   }
 }

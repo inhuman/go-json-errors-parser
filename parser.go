@@ -95,17 +95,19 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 
 		str := fmt.Sprintf("%s", s)
 		if re.MatchString(str) {
-			debugMessagef(str, "ERROR PARSED IN VALUE: %s\n")
+			debugMessagef(str, "ERROR FOUND IN VALUE: %s\n")
 			str, err := tryUnmarshalToString(s)
 			if err == nil {
 				debugMessage("UNMARSHAL to string error in value")
 				addStringError(*str, ps, parent)
 				continue
+			} else {
+				debugMessage(err.Error())
 			}
 		}
 
 		if re.MatchString(string(key)) {
-			debugMessagef(key, "ERROR PARSED IN VALUE: %s\n")
+			debugMessagef(key, "ERROR FOUND IN VALUE: %s\n")
 
 			// try to unmarshal to string
 			str, err := tryUnmarshalToString(s)
@@ -113,6 +115,8 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				debugMessage("UNMARSHAL to string")
 				addStringError(*str, ps, parent)
 				continue
+			} else {
+				debugMessage(err.Error())
 			}
 
 			strs, err := tryUnmarshalToStringSlice(s)
@@ -120,6 +124,8 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				debugMessage("UNMARSHAL to string slice")
 				addStringSliceError(*strs, ps, parent)
 				continue
+			} else {
+				debugMessage(err.Error())
 			}
 
 			maps, err := tryUnmarshalToStringSliceMap(s)
@@ -127,16 +133,19 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				debugMessage("UNMARSHAL to string slice map")
 				addStringSliceMapError(*maps, ps, parent)
 				continue
+			} else {
+				debugMessage(err.Error())
 			}
 
 			objMaps, err := tryUnmarshalToObjectsSliceMap(s)
-			fmt.Println(err)
-
 			if err == nil {
 				debugMessage("UNMARSHAL to obj slice map")
 				addObjectSliceMapError(*objMaps, ps, parent)
 				continue
+			} else {
+				debugMessage(err.Error())
 			}
+
 		} else {
 
 			debugMessage("ELSE fires:")
@@ -186,6 +195,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 			_, err = tryUnmarshalToObjectsSliceMap(s)
 			if err == nil {
 				debugMessage("detect s object slice map, walking deeper..")
+				debugMessagef( s,"%s")
 
 				var tmpMap []map[string]*json.RawMessage
 				err = json.Unmarshal(*s, &tmpMap)

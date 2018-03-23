@@ -1,0 +1,8 @@
+{
+  "status":400,
+  "errorReport": {
+    "taskfield" : "Task cannot be blank",
+    "taskdatefield" : "Task date needs to be within the month"
+  },
+  "errorMsg":"Bad Request"
+}

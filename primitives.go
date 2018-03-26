@@ -2,6 +2,7 @@ package go_json_errors_parser
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 type ParsedErrorInterface interface {
@@ -53,6 +54,30 @@ func (e *mapStringSliceInterfaceError) unmarshalJson() error {
 	return json.Unmarshal(e.RawMessage, &e.Error)
 }
 
+func (e *mapStringSliceInterfaceError) transferTo(ps *ParsedErrors, parent string) {
+	var tmpMap map[string][]interface{}
+
+	err := json.Unmarshal(e.RawMessage, &tmpMap)
+	if err != nil {
+		panic(err)
+	}
+
+	r := ParsedError{}
+
+	formattedStrs := make(map[string][]string)
+	for name, str := range tmpMap {
+		var tmpMap []string
+		for _, item := range str {
+			tmpMap = append(tmpMap, fmt.Sprintf("%v", item))
+		}
+		formattedStrs[name] = tmpMap
+	}
+	r.Children = formattedStrs
+	r.Parent = parent
+	ps.ParsedErrors = append(ps.ParsedErrors, r)
+
+}
+
 //Slice of map string interface error struct and unmarshal
 type sliceMapStringInterfaceError struct {
 	Error      []map[string]interface{}
@@ -61,6 +86,26 @@ type sliceMapStringInterfaceError struct {
 
 func (e *sliceMapStringInterfaceError) unmarshalJson() error {
 	return json.Unmarshal(e.RawMessage, &e.Error)
+}
+
+func (e *sliceMapStringInterfaceError) transferTo(ps *ParsedErrors, parent string) {
+
+	var strs []map[string]interface{}
+	err := json.Unmarshal(e.RawMessage, &strs)
+	if err != nil {
+		panic(err)
+	}
+	r := ParsedError{}
+
+	for _, value := range strs {
+		tmp := make(map[string][]string)
+		for key, val := range value {
+			tmp[key] = []string{fmt.Sprintf("%v", val)}
+		}
+		r.Children = tmp
+		r.Parent = parent
+	}
+	ps.ParsedErrors = append(ps.ParsedErrors, r)
 }
 
 // Bool struct and unmarshal
@@ -72,6 +117,21 @@ type boolValue struct {
 func (e *boolValue) unmarshalJson() error {
 	return json.Unmarshal(e.RawMessage, &e.Value)
 }
+
+func (e *boolValue) transferTo(ps *ParsedErrors, parent string) {}
+
+
+// Num struct and unmarshal
+type numValue struct {
+	Value int
+	RawMessage json.RawMessage
+}
+
+func (e *numValue) unmarshalJson() error {
+	return json.Unmarshal(e.RawMessage, &e.Value)
+}
+
+func (e *numValue) transferTo(ps *ParsedErrors, parent string) {}
 
 //TODO: implement batch check
 //var typeRegistry = make(map[string]reflect.Type)

@@ -8,56 +8,80 @@ import (
 
 func TestUnmarshalString(t *testing.T) {
 
-	var unmarshaledError stringError
-	unmarshaledError.RawMessage = json.RawMessage(`"Unauthorized"`)
+	// success unmarshal
+	var unmarshaledErrorSuccess stringError
+	unmarshaledErrorSuccess.RawMessage = json.RawMessage(`"Unauthorized"`)
 
-	err := unmarshaledError.unmarshalJson()
+	err := unmarshaledErrorSuccess.unmarshalJson()
 	assert.NoError(t, err)
-	assert.Equal(t, "Unauthorized", unmarshaledError.Error)
+	assert.Equal(t, "Unauthorized", unmarshaledErrorSuccess.Error)
 
+	// transfer to parsed errors struct
 	parsedErrors := ParsedErrors{}
-	unmarshaledError.transferTo(&parsedErrors, "")
+	unmarshaledErrorSuccess.transferTo(&parsedErrors, "")
 	assert.Equal(t, "Unauthorized", parsedErrors.ParsedErrors[0].Messages[0])
 
-	var unmarshaledError2 stringError
-	unmarshaledError2.RawMessage = json.RawMessage(`{"error": "Unauthorized"}`)
+	// fault unmarshal
+	var unmarshaledErrorFault stringError
+	unmarshaledErrorFault.RawMessage = json.RawMessage(`{"error": "Unauthorized"}`)
 
-	err2 := unmarshaledError2.unmarshalJson()
+	err2 := unmarshaledErrorFault.unmarshalJson()
 	assert.Error(t, err2, "json: cannot unmarshal object into Go value of type string")
 }
 
 func TestUnmarshalSliceString(t *testing.T) {
 
-	var unmarshaledError sliceStringError
-	unmarshaledError.RawMessage = json.RawMessage(`["Unauthorized", "Auth required"]`)
-
-	err := unmarshaledError.unmarshalJson()
+	// success unmarshal
+	var unmarshaledErrorSuccess sliceStringError
+	unmarshaledErrorSuccess.RawMessage = json.RawMessage(`["Unauthorized", "Auth required"]`)
+	err := unmarshaledErrorSuccess.unmarshalJson()
 	assert.NoError(t, err)
-	assert.Equal(t, "Unauthorized", unmarshaledError.Error[0])
-	assert.Equal(t, "Auth required", unmarshaledError.Error[1])
+	assert.Equal(t, "Unauthorized", unmarshaledErrorSuccess.Error[0])
+	assert.Equal(t, "Auth required", unmarshaledErrorSuccess.Error[1])
 
+	// transfer to parsed errors struct
 	parsedErrors := ParsedErrors{}
-	unmarshaledError.transferTo(&parsedErrors, "")
+	unmarshaledErrorSuccess.transferTo(&parsedErrors, "parent")
+	assert.Equal(t, "Unauthorized", parsedErrors.ParsedErrors[0].Messages[0])
+	assert.Equal(t, "Auth required", parsedErrors.ParsedErrors[0].Messages[1])
+	assert.Equal(t, "parent", parsedErrors.ParsedErrors[0].Parent)
 
-	var unmarshaledError2 sliceStringError
-	unmarshaledError2.RawMessage = json.RawMessage(`"Errors": ["Unauthorized","Auth required"]`)
 
-	err2 := unmarshaledError2.unmarshalJson()
+	// fault unmarshal
+	var unmarshaledErrorFault sliceStringError
+	unmarshaledErrorFault.RawMessage = json.RawMessage(`"Errors": ["Unauthorized","Auth required"]`)
+
+	err2 := unmarshaledErrorFault.unmarshalJson()
 	assert.Error(t, err2)
 }
 
 func TestMapStringSliceInterfaceError(t *testing.T) {
 
+	// success unmarshal
 	var unmarshaledError mapStringSliceInterfaceError
 	unmarshaledError.RawMessage = json.RawMessage(`{"Errors": ["Unauthorized", "Auth required"]}`)
 
 	err := unmarshaledError.unmarshalJson()
 	assert.NoError(t, err)
 	assert.Equal(t, "Unauthorized", unmarshaledError.Error["Errors"][0])
+
+	// transfer to parsed errors struct
+	parsedErrors := ParsedErrors{}
+	unmarshaledError.transferTo(&parsedErrors, "TestParent")
+
+	assert.Equal(t, "[TestParent][Errors] Auth required", parsedErrors.GetErrors()[0].Error())
+	assert.Equal(t, "[TestParent][Errors] Unauthorized", parsedErrors.GetErrors()[1].Error())
+
+	// fault unmarshal
+	var unmarshaledErrorFault mapStringSliceInterfaceError
+	unmarshaledErrorFault.RawMessage = json.RawMessage(`["Unauthorized","Auth required"]`)
+	err2 := unmarshaledErrorFault.unmarshalJson()
+	assert.Error(t, err2)
 }
 
 func TestSliceMapStringInterfaceError(t *testing.T) {
 
+	// success unmarshal
 	var unmarshaledError sliceMapStringInterfaceError
 	unmarshaledError.RawMessage = json.RawMessage(`[{"secure": false, "name": "ADF", "value": "123"}]`)
 
@@ -66,10 +90,18 @@ func TestSliceMapStringInterfaceError(t *testing.T) {
 	assert.Equal(t, false, unmarshaledError.Error[0]["secure"])
 	assert.Equal(t, "ADF", unmarshaledError.Error[0]["name"])
 
-	var unmarshaledError2 sliceMapStringInterfaceError
-	unmarshaledError2.RawMessage = json.RawMessage(`{"huembuem" : [{"secure": false, "name": "ADF", "value": "123"}]}`)
+	// transfer to parsed errors struct
+	parsedErrors := ParsedErrors{}
+	unmarshaledError.transferTo(&parsedErrors, "TestParent")
 
-	err2 := unmarshaledError2.unmarshalJson()
+	assert.Equal(t, "[TestParent][name] ADF", parsedErrors.GetErrors()[0].Error())
+	assert.Equal(t, "[TestParent][secure] false", parsedErrors.GetErrors()[1].Error())
+
+	// unmarshal error fault
+	var unmarshaledErrorFault sliceMapStringInterfaceError
+	unmarshaledErrorFault.RawMessage = json.RawMessage(`{"huembuem" : [{"secure": false, "name": "ADF", "value": "123"}]}`)
+
+	err2 := unmarshaledErrorFault.unmarshalJson()
 	assert.Error(t, err2)
 }
 

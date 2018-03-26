@@ -128,13 +128,8 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 			// try unmarshal to string slice
 			var sliceStringErr sliceStringError
 			sliceStringErr.RawMessage = *s
-			err = unmarshaledError.unmarshalJson()
+			err = sliceStringErr.unmarshalJson()
 			if err == nil {
-				//TODO: fix this
-				//	--- FAIL: TestParseErrorsExample6 (0.00s)
-				//panic: runtime error: index out of range [recovered]
-				//panic: runtime error: index out of range
-
 				debugMessage("UNMARSHAL to string slice")
 				sliceStringErr.transferTo(ps, parent)
 				continue
@@ -142,19 +137,26 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				debugMessage(err.Error())
 			}
 
-			maps, err := tryUnmarshalToStringSliceMap(s)
+			// try unmarshal to map slice of interfaces
+			var mapStringInterfaceErr mapStringSliceInterfaceError
+			mapStringInterfaceErr.RawMessage = *s
+			err = mapStringInterfaceErr.unmarshalJson()
 			if err == nil {
 				debugMessage("UNMARSHAL to string slice map")
-				addStringSliceMapError(*maps, ps, parent)
+				mapStringInterfaceErr.transferTo(ps, parent)
 				continue
 			} else {
 				debugMessage(err.Error())
 			}
 
-			objMaps, err := tryUnmarshalToObjectsSliceMap(s)
+			var sliceMapStringInterfaceErr sliceMapStringInterfaceError
+			sliceMapStringInterfaceErr.RawMessage = *s
+			err = sliceMapStringInterfaceErr.unmarshalJson()
+			//objMaps, err := tryUnmarshalToObjectsSliceMap(s)
 			if err == nil {
 				debugMessage("UNMARSHAL to obj slice map")
-				addObjectSliceMapError(*objMaps, ps, parent)
+				//addObjectSliceMapError(*objMaps, ps, parent)
+				sliceMapStringInterfaceErr.transferTo(ps, parent)
 				continue
 			} else {
 				debugMessage(err.Error())
@@ -170,31 +172,42 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				continue
 			}
 
-			_, err := tryUnmarshalToString(s)
+			var unmarshaledError stringError
+			unmarshaledError.RawMessage = *s
+			err := unmarshaledError.unmarshalJson()
 			if err == nil {
 				debugMessage("detect s is non error string, skipping..")
 				continue
 			}
 
-			_, err = tryUnmarshalToNum(s)
+			var numUnmarshaledErr numValue
+			numUnmarshaledErr.RawMessage = *s
+			err = numUnmarshaledErr.unmarshalJson()
 			if err == nil {
 				debugMessage("detect s is num, skipping..")
 				continue
 			}
 
-			_, err = tryUnmarshalToStringSlice(s)
+			var sliceStringErr sliceStringError
+			sliceStringErr.RawMessage = *s
+			err = sliceStringErr.unmarshalJson()
 			if err == nil {
 				debugMessage("detect s is string slice, skipping..")
 				continue
 			}
 
-			_, err = tryUnmarshalToBool(s)
+			var boolValueErr boolValue
+			boolValueErr.RawMessage = *s
+			err = boolValueErr.unmarshalJson()
 			if err == nil {
 				debugMessage("detect s is bool, skipping..")
 				continue
 			}
 
-			_, err = tryUnmarshalToStringSliceMap(s)
+
+			var mapStringInterfaceErr mapStringSliceInterfaceError
+			mapStringInterfaceErr.RawMessage = *s
+			err = mapStringInterfaceErr.unmarshalJson()
 			if err == nil {
 				debugMessage("detect s string slice map, waling deeper..")
 
@@ -206,7 +219,11 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				continue
 			}
 
-			_, err = tryUnmarshalToObjectsSliceMap(s)
+
+			var sliceMapStringInterfaceErr sliceMapStringInterfaceError
+			sliceMapStringInterfaceErr.RawMessage = *s
+			err = sliceMapStringInterfaceErr.unmarshalJson()
+
 			if err == nil {
 				debugMessage("detect s object slice map, walking deeper..")
 				debugMessagef(s, "%s")
@@ -231,98 +248,4 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 	}
 }
 
-func tryUnmarshalToString(i *json.RawMessage) (*string, error) {
-	var tmpMap string
-	err := json.Unmarshal(*i, &tmpMap)
-	if err != nil {
-		return nil, err
-	}
-	return &tmpMap, nil
-}
 
-func tryUnmarshalToNum(i *json.RawMessage) (*int, error) {
-	var tmpMap int
-	err := json.Unmarshal(*i, &tmpMap)
-	if err != nil {
-		return nil, err
-	}
-	return &tmpMap, nil
-}
-
-func tryUnmarshalToStringSlice(i *json.RawMessage) (*[]string, error) {
-	var tmpMap []string
-	err := json.Unmarshal(*i, &tmpMap)
-	if err != nil {
-		return nil, err
-	}
-	return &tmpMap, nil
-}
-
-func tryUnmarshalToStringSliceMap(i *json.RawMessage) (*map[string][]interface{}, error) {
-	var tmpMap map[string][]interface{}
-	err := json.Unmarshal(*i, &tmpMap)
-	if err != nil {
-		return nil, err
-	}
-	return &tmpMap, nil
-}
-
-func tryUnmarshalToBool(i *json.RawMessage) (*bool, error) {
-	var tmpMap bool
-	err := json.Unmarshal(*i, &tmpMap)
-	if err != nil {
-		return nil, err
-	}
-	return &tmpMap, nil
-}
-
-func tryUnmarshalToObjectsSliceMap(i *json.RawMessage) (*[]map[string]interface{}, error) {
-	var tmpMap []map[string]interface{}
-	err := json.Unmarshal(*i, &tmpMap)
-	if err != nil {
-		return nil, err
-	}
-	return &tmpMap, nil
-}
-
-func addStringError(str string, ps *ParsedErrors, parent string) {
-	e := ParsedError{}
-	e.Messages = append(e.Messages, trimQuotes(str))
-	e.Parent = parent
-	ps.ParsedErrors = append(ps.ParsedErrors, e)
-}
-
-func addStringSliceError(strs []string, ps *ParsedErrors, parent string) {
-	e := ParsedError{}
-	e.Messages = append(e.Messages, strs...)
-	e.Parent = parent
-	ps.ParsedErrors = append(ps.ParsedErrors, e)
-}
-
-func addStringSliceMapError(strs map[string][]interface{}, ps *ParsedErrors, parent string) {
-	e := ParsedError{}
-	formattedStrs := make(map[string][]string)
-	for name, str := range strs {
-		var tmpMap []string
-		for _, item := range str {
-			tmpMap = append(tmpMap, fmt.Sprintf("%v", item))
-		}
-		formattedStrs[name] = tmpMap
-	}
-	e.Children = formattedStrs
-	e.Parent = parent
-	ps.ParsedErrors = append(ps.ParsedErrors, e)
-}
-
-func addObjectSliceMapError(strs []map[string]interface{}, ps *ParsedErrors, parent string) {
-	e := ParsedError{}
-	for _, value := range strs {
-		tmp := make(map[string][]string)
-		for key, val := range value {
-			tmp[key] = []string{fmt.Sprintf("%v", val)}
-		}
-		e.Children = tmp
-		e.Parent = parent
-	}
-	ps.ParsedErrors = append(ps.ParsedErrors, e)
-}

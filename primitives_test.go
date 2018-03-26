@@ -125,7 +125,7 @@ func TestBatchCheck(t *testing.T) {
 	assert.NoError(t, e)
 	parsedErrors := ParsedErrors{}
 
-	batchCheck(file, &parsedErrors, "")
+	batchExtract(file, &parsedErrors, "")
 	//assert.NoError(t, err)
 
 	//assert.Equal(t, "Unauthorized", parsedErrors.ParsedErrors[0].Messages[0])

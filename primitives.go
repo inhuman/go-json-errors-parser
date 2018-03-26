@@ -3,6 +3,7 @@ package go_json_errors_parser
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 type ParsedErrorInterface interface {
@@ -157,20 +158,23 @@ func (e *numValue) unmarshalJson() error {
 
 func (e *numValue) transferTo(ps *ParsedErrors, parent string) {}
 
-//TODO: implement batch check
 
 var typeRegistry = []string{
-	"stringError",
-	"sliceStringError",
-	"mapStringSliceInterfaceError",
-	"sliceMapStringInterfaceError",
 	"boolValue",
 	"numValue",
+	"stringError",
+	"sliceStringError",
+	"sliceMapStringInterfaceError",
+	"mapStringSliceInterfaceError",
 }
 
 func makeInstanceStr(name string) ParsedErrorInterface {
 
 	switch name {
+	case "boolValue":
+		return &boolValue{}
+	case "numValue":
+		return &numValue{}
 	case "stringError":
 		return &stringError{}
 	case "sliceStringError":
@@ -179,16 +183,12 @@ func makeInstanceStr(name string) ParsedErrorInterface {
 		return &mapStringSliceInterfaceError{}
 	case "sliceMapStringInterfaceError":
 		return &sliceMapStringInterfaceError{}
-	case "boolValue":
-		return &boolValue{}
-	case "numValue":
-		return &numValue{}
 	default:
 		return nil
 	}
 }
 
-func batchCheck(s json.RawMessage, ps *ParsedErrors, parent string) error {
+func batchExtract(s json.RawMessage, ps *ParsedErrors, parent string) error {
 
 	var mainError []error
 
@@ -209,7 +209,45 @@ func batchCheck(s json.RawMessage, ps *ParsedErrors, parent string) error {
 		for _, err := range mainError {
 			debugMessage(err.Error())
 		}
+		return errors.New("There are errors while unmarshaling")
 	}
 
 	return nil
+}
+
+func batchCheck(s json.RawMessage, continueStructs []string) (error, bool) {
+
+	var mainError []error
+
+	for _, name := range typeRegistry {
+
+		parErr := makeInstanceStr(name)
+		parErr.setRawMessage(s)
+		err := parErr.unmarshalJson()
+		if err == nil {
+			if stringInSlice(name, continueStructs) {
+				return nil, true
+			}
+			return nil, false
+		}
+	}
+
+	if len(mainError) > 0 {
+		for _, err := range mainError {
+			debugMessage(err.Error())
+		}
+		return errors.New("There are errors while unmarshaling"), false
+	}
+
+	return nil, true
+}
+
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

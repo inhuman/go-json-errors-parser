@@ -1,24 +1,8 @@
 {
   "message": "Validations failed for pipeline 'FromTemplate3'. Error(s): [Validation failed.]. Please correct and resubmit.",
   "data": {
-    "_links": {
-      "self": {
-        "href": "http://localhost:8153/go/api/admin/pipelines/FromTemplate3"
-      },
-      "doc": {
-        "href": "https://api.gocd.org/#pipeline-config"
-      },
-      "find": {
-        "href": "http://localhost:8153/go/api/admin/pipelines/:pipeline_name"
-      }
-    },
     "label_template": "git-${COUNT}",
-    "enable_pipeline_locking": false,
-    "name": "FromTemplate3",
-    "template": "test_template",
-    "origin": null,
     "parameters": [
-
     ],
     "environment_variables": [
       {
@@ -38,14 +22,8 @@
         "type": "git",
         "attributes": {
           "url": "git@github.com:sample_repo/example.git",
-          "destination": "dest",
           "filter": null,
-          "invert_filter": false,
-          "name": null,
-          "auto_update": true,
-          "branch": "master",
-          "submodule_folder": null,
-          "shallow_clone": true
+          "invert_filter": false
         }
       },
       {
@@ -58,19 +36,12 @@
         "type": "git",
         "attributes": {
           "url": "git@github.com:sample_repo2/repo.git",
-          "destination": "dest",
-          "filter": null,
           "invert_filter": false,
           "name": null,
-          "auto_update": true,
-          "branch": "master",
-          "submodule_folder": null,
           "shallow_clone": true
         }
       }
     ],
-    "stages": null,
-    "tracking_tool": null,
-    "timer": null
+    "stages": null
   }
 }

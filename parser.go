@@ -112,7 +112,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 		if re.MatchString(string(key)) {
 			debugMessagef(key, "ERROR FOUND IN VALUE: %s\n")
 
-			err := batchCheck(*s, ps, parent)
+			err := batchExtract(*s, ps, parent)
 			if err == nil {
 				continue
 			} else {
@@ -129,68 +129,34 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				continue
 			}
 
-			var unmarshaledError stringError
-			unmarshaledError.RawMessage = *s
-			err := unmarshaledError.unmarshalJson()
-			if err == nil {
-				debugMessage("detect s is non error string, skipping..")
-				continue
-			}
-
-			var numUnmarshaledErr numValue
-			numUnmarshaledErr.RawMessage = *s
-			err = numUnmarshaledErr.unmarshalJson()
-			if err == nil {
-				debugMessage("detect s is num, skipping..")
-				continue
-			}
-
-			var sliceStringErr sliceStringError
-			sliceStringErr.RawMessage = *s
-			err = sliceStringErr.unmarshalJson()
-			if err == nil {
-				debugMessage("detect s is string slice, skipping..")
-				continue
-			}
-
-			var boolValueErr boolValue
-			boolValueErr.RawMessage = *s
-			err = boolValueErr.unmarshalJson()
-			if err == nil {
-				debugMessage("detect s is bool, skipping..")
-				continue
-			}
-
-
-			var mapStringInterfaceErr mapStringSliceInterfaceError
-			mapStringInterfaceErr.RawMessage = *s
-			err = mapStringInterfaceErr.unmarshalJson()
-			if err == nil {
-				debugMessage("detect s string slice map, waling deeper..")
+			err, cont := batchCheck(*s, []string{"mapStringSliceInterfaceError"})
+			if (err == nil) && cont {
 
 				var tmpMap map[string]*json.RawMessage
 				err = json.Unmarshal(*s, &tmpMap)
 				checkErr(err)
 
+				debugMessage("detect mapStringSliceInterfaceError, going deeper..")
 				walk(tmpMap, ps, key)
+
 				continue
 			}
 
-
-			var sliceMapStringInterfaceErr sliceMapStringInterfaceError
-			sliceMapStringInterfaceErr.RawMessage = *s
-			err = sliceMapStringInterfaceErr.unmarshalJson()
-
+			err, cont = batchCheck(*s, []string{"sliceMapStringInterfaceError"})
 			if err == nil {
-				debugMessage("detect s object slice map, walking deeper..")
-				debugMessagef(s, "%s")
+				if cont {
+					var tmpMap []map[string]*json.RawMessage
+					err = json.Unmarshal(*s, &tmpMap)
+					checkErr(err)
+					debugMessage("detect sliceMapStringInterfaceError, going deeper..")
 
-				var tmpMap []map[string]*json.RawMessage
-				err = json.Unmarshal(*s, &tmpMap)
-				checkErr(err)
+					for _, value := range tmpMap {
 
-				for _, value := range tmpMap {
-					walk(value, ps, key)
+						debugMessage("parsing sub struct")
+						debugMessagef(value, "%s")
+
+						walk(value, ps, key)
+					}
 				}
 				continue
 			}
@@ -204,5 +170,3 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 		}
 	}
 }
-
-

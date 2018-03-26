@@ -99,6 +99,30 @@ func TestParseErrorsExample8(t *testing.T) {
 	assert.Equal(t, false, errs.IsErrors())
 }
 
+func TestParseErrorsExample9(t *testing.T) {
+
+	file, e := ioutil.ReadFile("tests/example9.json")
+	assert.NoError(t, e)
+
+	errs := ParseErrors(string(file))
+	assert.Equal(t, true, errs.IsErrors())
+	assert.Equal(t, "Unauthorized", errs.ParsedErrors[0].Messages[0])
+	assert.Equal(t, "Auth required", errs.ParsedErrors[0].Messages[1])
+
+}
+
+func TestParseErrorsExample10(t *testing.T) {
+
+	file, e := ioutil.ReadFile("tests/example10.json")
+	assert.NoError(t, e)
+
+	errs := ParseErrors(string(file))
+	assert.Equal(t, true, errs.IsErrors())
+
+	prettyPrintStruct(errs)
+
+}
+
 func TestParsedErrors_GetErrors(t *testing.T) {
 	file, e := ioutil.ReadFile("tests/example3.json")
 	assert.NoError(t, e)

@@ -92,6 +92,38 @@ func (e *mapStringSliceInterfaceError) transferTo(ps *ParsedErrors, parent strin
 
 }
 
+// Map of string interface struct and unmarshal
+type mapStringInterfaceError struct {
+	Error      map[string]string
+	RawMessage json.RawMessage
+}
+
+func (e mapStringInterfaceError) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
+}
+
+func (e *mapStringInterfaceError) unmarshalJson() error {
+	fmt.Println("mapStringInterfaceError raw message")
+	fmt.Printf("%v\n", e.RawMessage)
+	return json.Unmarshal(e.RawMessage, &e.Error)
+}
+
+func (e *mapStringInterfaceError) transferTo(ps *ParsedErrors, parent string) {
+	r := ParsedError{}
+	r.Parent = parent
+
+	fmt.Printf("%s", e.Error)
+
+	tmp := make(map[string][]string)
+
+	for name, err := range e.Error {
+		tmp[name] = []string{fmt.Sprintf("%v", err)}
+	}
+
+	r.Children = tmp
+	ps.ParsedErrors = append(ps.ParsedErrors, r)
+}
+
 //Slice of map string interface error struct and unmarshal
 type sliceMapStringInterfaceError struct {
 	Error      []map[string]interface{}
@@ -162,6 +194,7 @@ var typeRegistry = []string{
 	"boolValue",
 	"numValue",
 	"stringError",
+	"mapStringInterfaceError",
 	"sliceStringError",
 	"sliceMapStringInterfaceError",
 	"mapStringSliceInterfaceError",
@@ -178,6 +211,8 @@ func makeInstanceStr(name string) ParsedErrorInterface {
 		return &stringError{}
 	case "sliceStringError":
 		return &sliceStringError{}
+	case "mapStringInterfaceError":
+		return  &mapStringInterfaceError{}
 	case "mapStringSliceInterfaceError":
 		return &mapStringSliceInterfaceError{}
 	case "sliceMapStringInterfaceError":
@@ -230,6 +265,9 @@ func batchCheck(s json.RawMessage, continueStructs []string) (error, bool) {
 			return nil, false
 		}
 	}
+
+	//TODO: fix test example10 & 11
+
 
 	if len(mainError) > 0 {
 		for _, err := range mainError {

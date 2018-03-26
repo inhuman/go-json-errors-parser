@@ -158,7 +158,6 @@ func (e *numValue) unmarshalJson() error {
 
 func (e *numValue) transferTo(ps *ParsedErrors, parent string) {}
 
-
 var typeRegistry = []string{
 	"boolValue",
 	"numValue",
@@ -242,6 +241,40 @@ func batchCheck(s json.RawMessage, continueStructs []string) (error, bool) {
 	return nil, true
 }
 
+func batchCheckCallback(s json.RawMessage, funcMap map[string]func()) error {
+
+	var mainError []error
+
+	for _, name := range typeRegistry {
+
+		parErr := makeInstanceStr(name)
+		parErr.setRawMessage(s)
+		err := parErr.unmarshalJson()
+
+		fmt.Println("Check unmarshal to", name)
+		fmt.Println(err)
+		fmt.Printf("Errored value: %s\n", s)
+
+		if err == nil {
+			fmt.Println("Check if calback exists")
+			if f, ok := funcMap[name]; ok {
+				fmt.Println("Fire callback")
+				f()
+			}
+
+			return nil
+		}
+	}
+
+	if len(mainError) > 0 {
+		for _, err := range mainError {
+			debugMessage(err.Error())
+		}
+		return errors.New("There are errors while unmarshaling")
+	}
+
+	return nil
+}
 
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {

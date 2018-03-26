@@ -6,32 +6,10 @@
         "Package spec not specified"
       ]
     },
-    "_links": {
-      "self": {
-        "href": "http://localhost:8153/go/api/admin/packages/c4b10faf-62f9-4b75-ae7f-9dc042e3d310"
-      },
-      "doc": {
-        "href": "https://api.gocd.org/#packages"
-      },
-      "find": {
-        "href": "http://localhost:8153/go/api/admin/packages/:package_id"
-      }
-    },
     "name": "package_name3",
     "id": "c4b10faf-62f9-4b75-ae7f-9dc042e3d310",
     "auto_update": true,
     "package_repo": {
-      "_links": {
-        "self": {
-          "href": "http://localhost:8153/go/api/admin/repositories/b83e0ac7-889c-4d28-9f9e-c1fdfae3749f"
-        },
-        "doc": {
-          "href": "https://api.gocd.org/#package-repositories"
-        },
-        "find": {
-          "href": "http://localhost:8153/go/api/admin/repositories/:repo_id"
-        }
-      },
       "id": "b83e0ac7-889c-4d28-9f9e-c1fdfae3749f",
       "name": "artifactory-rpm"
     },

@@ -129,6 +129,37 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				continue
 			}
 
+			//funcMap := make(map[string]func())
+			//
+			//funcMap["mapStringSliceInterfaceError"] = func() {
+			//	var tmpMap map[string]*json.RawMessage
+			//	err := json.Unmarshal(*s, &tmpMap)
+			//	checkErr(err)
+			//
+			//	debugMessage("detect mapStringSliceInterfaceError, going deeper..")
+			//	walk(tmpMap, ps, key)
+			//}
+			//
+			//funcMap["sliceMapStringInterfaceError"] = func() {
+			//	var tmpMap []map[string]*json.RawMessage
+			//	err := json.Unmarshal(*s, &tmpMap)
+			//	checkErr(err)
+			//	debugMessage("detect sliceMapStringInterfaceError, going deeper..")
+			//
+			//	for _, value := range tmpMap {
+			//
+			//		debugMessage("parsing sub struct")
+			//		debugMessagef(value, "%s")
+			//
+			//		walk(value, ps, key)
+			//	}
+			//}
+			//
+			//err := batchCheckCallback(*s, funcMap)
+			//if err == nil {
+			//	continue
+			//}
+
 			err, cont := batchCheck(*s, []string{"mapStringSliceInterfaceError"})
 			if (err == nil) && cont {
 
@@ -170,3 +201,4 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 		}
 	}
 }
+

@@ -112,51 +112,8 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 		if re.MatchString(string(key)) {
 			debugMessagef(key, "ERROR FOUND IN VALUE: %s\n")
 
-			// try to unmarshal to string
-			var unmarshaledError stringError
-			unmarshaledError.RawMessage = *s
-			err := unmarshaledError.unmarshalJson()
-
+			err := batchCheck(*s, ps, parent)
 			if err == nil {
-				debugMessage("UNMARSHAL to string")
-				unmarshaledError.transferTo(ps, parent)
-				continue
-			} else {
-				debugMessage(err.Error())
-			}
-
-			// try unmarshal to string slice
-			var sliceStringErr sliceStringError
-			sliceStringErr.RawMessage = *s
-			err = sliceStringErr.unmarshalJson()
-			if err == nil {
-				debugMessage("UNMARSHAL to string slice")
-				sliceStringErr.transferTo(ps, parent)
-				continue
-			} else {
-				debugMessage(err.Error())
-			}
-
-			// try unmarshal to map slice of interfaces
-			var mapStringInterfaceErr mapStringSliceInterfaceError
-			mapStringInterfaceErr.RawMessage = *s
-			err = mapStringInterfaceErr.unmarshalJson()
-			if err == nil {
-				debugMessage("UNMARSHAL to string slice map")
-				mapStringInterfaceErr.transferTo(ps, parent)
-				continue
-			} else {
-				debugMessage(err.Error())
-			}
-
-			var sliceMapStringInterfaceErr sliceMapStringInterfaceError
-			sliceMapStringInterfaceErr.RawMessage = *s
-			err = sliceMapStringInterfaceErr.unmarshalJson()
-			//objMaps, err := tryUnmarshalToObjectsSliceMap(s)
-			if err == nil {
-				debugMessage("UNMARSHAL to obj slice map")
-				//addObjectSliceMapError(*objMaps, ps, parent)
-				sliceMapStringInterfaceErr.transferTo(ps, parent)
 				continue
 			} else {
 				debugMessage(err.Error())

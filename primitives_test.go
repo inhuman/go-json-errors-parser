@@ -4,6 +4,7 @@ import (
 	"testing"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 )
 
 func TestUnmarshalString(t *testing.T) {
@@ -118,11 +119,15 @@ func TestBoolValue(t *testing.T) {
 	assert.Error(t, err2)
 }
 
-//func TestBatchCheck(t *testing.T) {
-//
-//	rawMessage := json.RawMessage(`"Unauthorized"`)
-//	parsedErrors := ParsedErrors{}
-//
-//	batchCheck(&rawMessage, &parsedErrors, "")
-//
-//}
+func TestBatchCheck(t *testing.T) {
+
+	file, e := ioutil.ReadFile("tests/example1.json")
+	assert.NoError(t, e)
+	parsedErrors := ParsedErrors{}
+
+	batchCheck(file, &parsedErrors, "")
+	//assert.NoError(t, err)
+
+	//assert.Equal(t, "Unauthorized", parsedErrors.ParsedErrors[0].Messages[0])
+
+}

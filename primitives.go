@@ -6,6 +6,7 @@ import (
 )
 
 type ParsedErrorInterface interface {
+	setRawMessage(m json.RawMessage)
 	unmarshalJson() error
 	transferTo(ps *ParsedErrors, parent string)
 }
@@ -14,6 +15,10 @@ type ParsedErrorInterface interface {
 type stringError struct {
 	Error      string
 	RawMessage json.RawMessage
+}
+
+func (e *stringError) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
 }
 
 func (e *stringError) unmarshalJson() error {
@@ -33,6 +38,10 @@ type sliceStringError struct {
 	RawMessage json.RawMessage
 }
 
+func (e *sliceStringError) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
+}
+
 func (e *sliceStringError) unmarshalJson() error {
 	return json.Unmarshal(e.RawMessage, &e.Error)
 }
@@ -48,6 +57,10 @@ func (e *sliceStringError) transferTo(ps *ParsedErrors, parent string) {
 type mapStringSliceInterfaceError struct {
 	Error      map[string][]interface{}
 	RawMessage json.RawMessage
+}
+
+func (e *mapStringSliceInterfaceError) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
 }
 
 func (e *mapStringSliceInterfaceError) unmarshalJson() error {
@@ -84,6 +97,10 @@ type sliceMapStringInterfaceError struct {
 	RawMessage json.RawMessage
 }
 
+func (e *sliceMapStringInterfaceError) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
+}
+
 func (e *sliceMapStringInterfaceError) unmarshalJson() error {
 	return json.Unmarshal(e.RawMessage, &e.Error)
 }
@@ -114,17 +131,24 @@ type boolValue struct {
 	RawMessage json.RawMessage
 }
 
+func (e *boolValue) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
+}
+
 func (e *boolValue) unmarshalJson() error {
 	return json.Unmarshal(e.RawMessage, &e.Value)
 }
 
 func (e *boolValue) transferTo(ps *ParsedErrors, parent string) {}
 
-
 // Num struct and unmarshal
 type numValue struct {
-	Value int
+	Value      int
 	RawMessage json.RawMessage
+}
+
+func (e *numValue) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
 }
 
 func (e *numValue) unmarshalJson() error {
@@ -134,30 +158,58 @@ func (e *numValue) unmarshalJson() error {
 func (e *numValue) transferTo(ps *ParsedErrors, parent string) {}
 
 //TODO: implement batch check
-//var typeRegistry = make(map[string]reflect.Type)
-//
-//func makeInstance(name string) ParsedErrorInterface {
-//	v := reflect.New(typeRegistry[name]).Elem()
-//
-//	ins := v.Interface()
-//
-//	return ins.(ParsedErrorInterface)
-//}
-//
-//func batchCheck(s *json.RawMessage, ps *ParsedErrors, parent string) error {
-//	typeRegistry["stringError"] = reflect.TypeOf(stringError{})
-//
-//	for name := range typeRegistry {
-//		parErr := makeInstance(name)
-//
-//
-//		err := parErr.unmarshalJson()
-//		if err == nil {
-//			parErr.transferTo(ps, parent)
-//		} else {
-//			return nil
-//		}
-//	}
-//
-//	return nil
-//}
+
+var typeRegistry = []string{
+	"stringError",
+	"sliceStringError",
+	"mapStringSliceInterfaceError",
+	"sliceMapStringInterfaceError",
+	"boolValue",
+	"numValue",
+}
+
+func makeInstanceStr(name string) ParsedErrorInterface {
+
+	switch name {
+	case "stringError":
+		return &stringError{}
+	case "sliceStringError":
+		return &sliceStringError{}
+	case "mapStringSliceInterfaceError":
+		return &mapStringSliceInterfaceError{}
+	case "sliceMapStringInterfaceError":
+		return &sliceMapStringInterfaceError{}
+	case "boolValue":
+		return &boolValue{}
+	case "numValue":
+		return &numValue{}
+	default:
+		return nil
+	}
+}
+
+func batchCheck(s json.RawMessage, ps *ParsedErrors, parent string) error {
+
+	var mainError []error
+
+	for _, name := range typeRegistry {
+
+		parErr := makeInstanceStr(name)
+		parErr.setRawMessage(s)
+
+		err := parErr.unmarshalJson()
+		if err == nil {
+			parErr.transferTo(ps, parent)
+		} else {
+			mainError = append(mainError, err)
+		}
+	}
+
+	if len(mainError) > 0 {
+		for _, err := range mainError {
+			debugMessage(err.Error())
+		}
+	}
+
+	return nil
+}

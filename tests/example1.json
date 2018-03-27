@@ -3,15 +3,14 @@
   "data": {
     "errors": {
       "PACKAGE_SPEC": [
-        "Package spec not specified"
+        "Package spec not specified",
+        4
       ]
     },
-    "name": "package_name3",
     "id": "c4b10faf-62f9-4b75-ae7f-9dc042e3d310",
     "auto_update": true,
     "package_repo": {
-      "id": "b83e0ac7-889c-4d28-9f9e-c1fdfae3749f",
-      "name": "artifactory-rpm"
+      "id": "b83e0ac7-889c-4d28-9f9e-c1fdfae3749f"
     },
     "configuration": []
   }

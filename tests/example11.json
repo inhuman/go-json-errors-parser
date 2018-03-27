@@ -1,6 +1,7 @@
 {
   "error": {
     "code": 404,
-    "message": "Not Found"
+    "message": "Not Found",
+    "extra-data": false
   }
 }

@@ -1,8 +1,8 @@
 package go_json_errors_parser
 
 import (
-	"github.com/hokaccha/go-prettyjson"
 	"fmt"
+	"github.com/hokaccha/go-prettyjson"
 	"os"
 )
 
@@ -35,7 +35,7 @@ func debugMessage(string string) {
 	}
 }
 
-func debugMessagef(i interface{}, format string) {
+func debugMessagef(format string, i interface{}) {
 	if os.Getenv(DebugEnvVarName) == "1" {
 		fmt.Printf(format, i)
 	}

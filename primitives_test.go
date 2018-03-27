@@ -1,10 +1,10 @@
 package go_json_errors_parser
 
 import (
-	"testing"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"testing"
 )
 
 func TestUnmarshalString(t *testing.T) {
@@ -46,7 +46,6 @@ func TestUnmarshalSliceString(t *testing.T) {
 	assert.Equal(t, "Unauthorized", parsedErrors.ParsedErrors[0].Messages[0])
 	assert.Equal(t, "Auth required", parsedErrors.ParsedErrors[0].Messages[1])
 	assert.Equal(t, "parent", parsedErrors.ParsedErrors[0].Parent)
-
 
 	// fault unmarshal
 	var unmarshaledErrorFault sliceStringError

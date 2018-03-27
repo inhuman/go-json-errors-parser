@@ -3,19 +3,12 @@
   "data": {
     "errors": {
       "materials": [
-        "A pipeline must have at least one material"
+        "A pipeline must have at least one material",
+        null
       ],
       "label_template": [
         "Invalid label '123'. Label should be composed of alphanumeric text, it can contain the build number as ${COUNT}, can contain a material revision as ${<material-name>} of ${<material-name>[:<number>]}, or use params as #{<param-name>}."
       ]
-    },
-    "_links": {
-      "doc": {
-        "href": "https://api.gocd.org/#pipeline-config"
-      },
-      "find": {
-        "href": "http://localhost:8153/go/api/admin/pipelines/:pipeline_name"
-      }
     },
     "label_template": "123",
     "origin": null

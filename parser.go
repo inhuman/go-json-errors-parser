@@ -3,9 +3,9 @@ package go_json_errors_parser
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"regexp"
 	"sort"
-	"github.com/pkg/errors"
 )
 
 type ParsedError struct {
@@ -90,13 +90,13 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 
 	for key, s := range item {
 
-		debugMessagef(key, "Key: %s\n")
-		debugMessagef(s, "Value: %s\n")
+		debugMessagef("Key: %s\n", key)
+		debugMessagef("Value: %s\n", s)
 
 		// check if errors in value
 		str := fmt.Sprintf("%s", s)
 		if re.MatchString(str) {
-			debugMessagef(str, "ERROR FOUND IN VALUE: %s\n")
+			debugMessagef("ERROR FOUND IN VALUE: %s\n", str)
 
 			var unmarshaledError stringError
 			unmarshaledError.RawMessage = *s
@@ -105,12 +105,13 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				unmarshaledError.transferTo(ps, parent)
 				continue
 			} else {
+				debugMessage("Error-in-value not works: can't unmarshal")
 				debugMessage(err.Error())
 			}
 		}
 
 		if re.MatchString(string(key)) {
-			debugMessagef(key, "ERROR FOUND IN VALUE: %s\n")
+			debugMessagef("ERROR FOUND IN KEY: %s\n", key)
 
 			err := batchExtract(*s, ps, parent)
 			if err == nil {
@@ -128,37 +129,6 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				debugMessage("detect s is nil, skipping..")
 				continue
 			}
-
-			//funcMap := make(map[string]func())
-			//
-			//funcMap["mapStringSliceInterfaceError"] = func() {
-			//	var tmpMap map[string]*json.RawMessage
-			//	err := json.Unmarshal(*s, &tmpMap)
-			//	checkErr(err)
-			//
-			//	debugMessage("detect mapStringSliceInterfaceError, going deeper..")
-			//	walk(tmpMap, ps, key)
-			//}
-			//
-			//funcMap["sliceMapStringInterfaceError"] = func() {
-			//	var tmpMap []map[string]*json.RawMessage
-			//	err := json.Unmarshal(*s, &tmpMap)
-			//	checkErr(err)
-			//	debugMessage("detect sliceMapStringInterfaceError, going deeper..")
-			//
-			//	for _, value := range tmpMap {
-			//
-			//		debugMessage("parsing sub struct")
-			//		debugMessagef(value, "%s")
-			//
-			//		walk(value, ps, key)
-			//	}
-			//}
-			//
-			//err := batchCheckCallback(*s, funcMap)
-			//if err == nil {
-			//	continue
-			//}
 
 			err, cont := batchCheck(*s, []string{"mapStringSliceInterfaceError"})
 			if (err == nil) && cont {
@@ -184,7 +154,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 					for _, value := range tmpMap {
 
 						debugMessage("parsing sub struct")
-						debugMessagef(value, "%s")
+						debugMessagef("%s", value)
 
 						walk(value, ps, key)
 					}
@@ -201,4 +171,3 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 		}
 	}
 }
-

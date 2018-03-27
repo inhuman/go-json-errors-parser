@@ -94,26 +94,74 @@ func (e *mapStringSliceInterfaceError) transferTo(ps *ParsedErrors, parent strin
 
 // Map of string interface struct and unmarshal
 type mapStringInterfaceError struct {
-	Error      map[string]string
+	Error      map[string]interface{}
 	RawMessage json.RawMessage
 }
 
-func (e mapStringInterfaceError) setRawMessage(m json.RawMessage) {
+func (e *mapStringInterfaceError) setRawMessage(m json.RawMessage) {
 	e.RawMessage = m
 }
 
 func (e *mapStringInterfaceError) unmarshalJson() error {
-	fmt.Println("mapStringInterfaceError raw message")
-	fmt.Printf("%v\n", e.RawMessage)
-	return json.Unmarshal(e.RawMessage, &e.Error)
+	//TODO how check that in interface bool or float or num or string
+
+	err := json.Unmarshal(e.RawMessage, &e.Error)
+
+	if err == nil {
+
+		for _, value := range e.Error {
+			s := fmt.Sprintf("%s", value)
+
+			if len(s) >= 2 {
+				b := s[0]
+				e := s[len(s)-1]
+
+				if (string(b) == "{") && (string(e) == "}") {
+					debugMessage("OBJECT FOUND IN INTERFACE")
+					return errors.New("Json object found in interface value")
+				}
+
+				if (string(b) == "[") && (string(e) == "]") {
+					debugMessage("ARRAY FOUND IN INTERFACE")
+					return errors.New("Array object found in interface value")
+				}
+			}
+		}
+	}
+
+	return err
 }
 
 func (e *mapStringInterfaceError) transferTo(ps *ParsedErrors, parent string) {
 	r := ParsedError{}
 	r.Parent = parent
+	tmp := make(map[string][]string)
 
-	fmt.Printf("%s", e.Error)
+	for name, err := range e.Error {
+		tmp[name] = []string{fmt.Sprintf("%v", err)}
+	}
 
+	r.Children = tmp
+	ps.ParsedErrors = append(ps.ParsedErrors, r)
+}
+
+// Map of string string struct and unmarshal
+type mapStringStringError struct {
+	Error      map[string]string
+	RawMessage json.RawMessage
+}
+
+func (e *mapStringStringError) setRawMessage(m json.RawMessage) {
+	e.RawMessage = m
+}
+
+func (e *mapStringStringError) unmarshalJson() error {
+	return json.Unmarshal(e.RawMessage, &e.Error)
+}
+
+func (e *mapStringStringError) transferTo(ps *ParsedErrors, parent string) {
+	r := ParsedError{}
+	r.Parent = parent
 	tmp := make(map[string][]string)
 
 	for name, err := range e.Error {
@@ -194,10 +242,12 @@ var typeRegistry = []string{
 	"boolValue",
 	"numValue",
 	"stringError",
-	"mapStringInterfaceError",
 	"sliceStringError",
+	//"mapStringStringError",
+
 	"sliceMapStringInterfaceError",
 	"mapStringSliceInterfaceError",
+	"mapStringInterfaceError",
 }
 
 func makeInstanceStr(name string) ParsedErrorInterface {
@@ -211,8 +261,10 @@ func makeInstanceStr(name string) ParsedErrorInterface {
 		return &stringError{}
 	case "sliceStringError":
 		return &sliceStringError{}
+		//case "mapStringStringError":
+		//	return &mapStringStringError{}
 	case "mapStringInterfaceError":
-		return  &mapStringInterfaceError{}
+		return &mapStringInterfaceError{}
 	case "mapStringSliceInterfaceError":
 		return &mapStringSliceInterfaceError{}
 	case "sliceMapStringInterfaceError":
@@ -226,7 +278,11 @@ func batchExtract(s json.RawMessage, ps *ParsedErrors, parent string) error {
 
 	var mainError []error
 
+	debugMessage("Starting batch extractor..")
+
 	for _, name := range typeRegistry {
+
+		debugMessagef("Trying extract to %s\n", name)
 
 		parErr := makeInstanceStr(name)
 		parErr.setRawMessage(s)
@@ -263,11 +319,10 @@ func batchCheck(s json.RawMessage, continueStructs []string) (error, bool) {
 				return nil, true
 			}
 			return nil, false
+		} else {
+			mainError = append(mainError, err)
 		}
 	}
-
-	//TODO: fix test example10 & 11
-
 
 	if len(mainError) > 0 {
 		for _, err := range mainError {

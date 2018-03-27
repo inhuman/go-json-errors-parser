@@ -1,9 +1,9 @@
 package go_json_errors_parser
 
 import (
-	"testing"
-	"io/ioutil"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"testing"
 )
 
 func TestParseErrorsExample1(t *testing.T) {
@@ -119,7 +119,17 @@ func TestParseErrorsExample10(t *testing.T) {
 	errs := ParseErrors(string(file))
 	assert.Equal(t, true, errs.IsErrors())
 
-	prettyPrintStruct(errs)
+	assert.Equal(t, "Task date needs to be within the month", errs.ParsedErrors[0].Children["taskdatefield"][0])
+
+}
+
+func TestParseErrorsExample11(t *testing.T) {
+
+	file, e := ioutil.ReadFile("tests/example11.json")
+	assert.NoError(t, e)
+
+	errs := ParseErrors(string(file))
+	assert.Equal(t, true, errs.IsErrors())
 
 }
 
@@ -131,43 +141,3 @@ func TestParsedErrors_GetErrors(t *testing.T) {
 	errors := errs.GetErrors()
 	assert.Equal(t, "[data][materials] A pipeline must have at least one material", errors[2].Error())
 }
-
-//func TestVoid1(t *testing.T) {
-//	runWithFile(1, t)
-//}
-//
-//func TestVoid2(t *testing.T) {
-//	runWithFile(2, t)
-//}
-//
-//func TestVoid3(t *testing.T) {
-//	runWithFile(3, t)
-//}
-//
-//func TestVoid5(t *testing.T) {
-//	runWithFile(5, t)
-//}
-//
-//func TestVoid6(t *testing.T) {
-//	runWithFile(6, t)
-//}
-//
-//func TestVoid9(t *testing.T) {
-//	runWithFile(9, t)
-//}
-//
-//func TestVoid7(t *testing.T) {
-//	runWithFile(7, t)
-//}
-//
-//func TestVoid10(t *testing.T) {
-//	runWithFile(10, t)
-//}
-//
-//func runWithFile(i int, t *testing.T) {
-//
-//	file, e := ioutil.ReadFile("tests/example" + strconv.Itoa(i) + ".json")
-//	assert.NoError(t, e)
-//
-//	ParseErrors(string(file))
-//}

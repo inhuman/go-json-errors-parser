@@ -139,5 +139,5 @@ func TestParsedErrors_GetErrors(t *testing.T) {
 	errs := ParseErrors(string(file))
 
 	errors := errs.GetErrors()
-	assert.Equal(t, "[data][materials] A pipeline must have at least one material", errors[2].Error())
+	assert.Equal(t, "[data][materials] A pipeline must have at least one material", errors[3].Error())
 }

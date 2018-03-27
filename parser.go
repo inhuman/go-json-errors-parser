@@ -130,6 +130,7 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				continue
 			}
 
+			debugMessage("Checking all with continue on mapStringSliceInterfaceError")
 			err, cont := batchCheck(*s, []string{"mapStringSliceInterfaceError"})
 			if (err == nil) && cont {
 
@@ -141,14 +142,20 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 				walk(tmpMap, ps, key)
 
 				continue
+			} else {
+				if err != nil {
+					debugMessage(err.Error())
+				}
 			}
 
+			debugMessage("Checking all with continue on sliceMapStringInterfaceError")
 			err, cont = batchCheck(*s, []string{"sliceMapStringInterfaceError"})
 			if err == nil {
 				if cont {
 					var tmpMap []map[string]*json.RawMessage
 					err = json.Unmarshal(*s, &tmpMap)
 					checkErr(err)
+
 					debugMessage("detect sliceMapStringInterfaceError, going deeper..")
 
 					for _, value := range tmpMap {
@@ -159,7 +166,12 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 						walk(value, ps, key)
 					}
 				}
+
+				debugMessage("Err is nil but cont is false")
+
 				continue
+			} else {
+				debugMessage(err.Error())
 			}
 
 			var tmpMap map[string]*json.RawMessage

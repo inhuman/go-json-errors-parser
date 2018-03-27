@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"strconv"
 )
 
 type ParsedErrorInterface interface {
@@ -107,9 +108,16 @@ func (e *mapStringInterfaceError) unmarshalJson() error {
 
 	err := json.Unmarshal(e.RawMessage, &e.Error)
 
+	debugMessage("Unmarshaliing mapStringInterfaceError")
+
 	if err == nil {
+		debugMessage("Unmarshaled to mapStringInterfaceError, checking values..")
+		debugMessage("len of error: " + strconv.Itoa(len(e.Error)))
 
 		for _, value := range e.Error {
+
+			debugMessagef("%s\n", value)
+
 			s := fmt.Sprintf("%s", value)
 
 			if len(s) >= 2 {
@@ -126,7 +134,19 @@ func (e *mapStringInterfaceError) unmarshalJson() error {
 					return errors.New("Array object found in interface value")
 				}
 			}
+
+
+			if len(s) > 3 {
+				first3 := s[0:3]
+
+				if first3 == "map" {
+					debugMessage("MAP FOUND IN INTERFACE")
+					return errors.New("Map found in interface value")
+				}
+			}
 		}
+	} else {
+		debugMessage("Error while unmarshalling")
 	}
 
 	return err
@@ -314,10 +334,13 @@ func batchCheck(s json.RawMessage, continueStructs []string) (error, bool) {
 		parErr := makeInstanceStr(name)
 		parErr.setRawMessage(s)
 		err := parErr.unmarshalJson()
+
 		if err == nil {
 			if stringInSlice(name, continueStructs) {
 				return nil, true
 			}
+			debugMessage("nil, false given by " + name)
+
 			return nil, false
 		} else {
 			mainError = append(mainError, err)

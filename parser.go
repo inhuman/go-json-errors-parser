@@ -113,6 +113,10 @@ func walk(item map[string]*json.RawMessage, ps *ParsedErrors, parent string) {
 		if re.MatchString(string(key)) {
 			debugMessagef("ERROR FOUND IN KEY: %s\n", key)
 
+			if s == nil {
+				continue
+			}
+
 			err := batchExtract(*s, ps, parent)
 			if err == nil {
 				continue

@@ -133,6 +133,16 @@ func TestParseErrorsExample11(t *testing.T) {
 
 }
 
+func TestParseErrorsExample12(t *testing.T) {
+
+	file, e := ioutil.ReadFile("tests/example12.json")
+	assert.NoError(t, e)
+
+	errs := ParseErrors(string(file))
+	assert.Equal(t, false, errs.IsErrors())
+}
+
+
 func TestParsedErrors_GetErrors(t *testing.T) {
 	file, e := ioutil.ReadFile("tests/example3.json")
 	assert.NoError(t, e)
